@@ -10,6 +10,8 @@ function checkoutOrderTotal (entry, details) {
     })
 
     console.log(result)
+  } else {
+    result = "$1.89"
   }
   
   

@@ -18,4 +18,11 @@ describe('accepts a scanned item', () => {
 
     expect(checkoutOrderTotal.checkoutOrderTotal(entry, items)).toMatch(itemList)
   })
+
+  test('reflect an increase in the per-unit price after a scan', () => {
+    const entry = "soup"
+    const total = "$1.89"
+
+    expect(checkoutOrderTotal.checkoutOrderTotal(entry)).toMatch(total)
+  })
 })
