@@ -1,0 +1,29 @@
+{
+  "name": "pillar-kata",
+  "version": "1.0.0",
+  "description": "kata for pillar",
+  "main": "checkout-order-total.js",
+  "scripts": {
+    "test": "jest --watch -o"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/timothy-o-johnson/pillar-kata.git"
+  },
+  "keywords": [
+    "pillar",
+    "kata",
+    "checkout",
+    "order",
+    "total"
+  ],
+  "author": "Tim Johnson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/timothy-o-johnson/pillar-kata/issues"
+  },
+  "homepage": "https://github.com/timothy-o-johnson/pillar-kata#readme",
+  "dependencies": {
+    "jest": "^24.9.0"
+  }
+}
