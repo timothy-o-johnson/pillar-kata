@@ -142,4 +142,17 @@ describe('Use Case #4: support a special in the form of "Buy N items get M at %X
 
     expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
   })
+
+  test('c: buy 2, get 1 half off', () => {
+    checkoutOrderApp.basket = {} // empty the basket
+    const items = [soup, sardines, bananas, cards]
+    checkoutOrderApp.configurePricesAndReturnAnItemsList(items) // stock the items
+    
+    const scans = ['sardines', 'sardines', 'sardines', 'sardines', 'sardines', 'cards', 'cards', 'cards']
+    const totalPrice = sardines.price * (5 - 2) + cards.price * 2.5
+
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
+  })
 })
+
+// Error checking -- what if an item is scanned but in the system
