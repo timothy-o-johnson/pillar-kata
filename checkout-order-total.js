@@ -1,6 +1,8 @@
 function CheckoutOrderApp () {
   this.itemList = {}
   this.basket = {}
+  this.markDowns = {}
+
   let price = 0
   let quantity = 0
 
@@ -70,6 +72,16 @@ function CheckoutOrderApp () {
     } else {
       basket[item] = 1
     }
+  }
+
+  this.addMarkDowns = function(markDowns){
+    markDowns = this.makeArray(markDowns)
+
+    markDowns.forEach(markDown => {
+      this.markDowns[markDown.name] = markDown.amount
+    })
+
+    return this.markDowns
   }
 }
 
