@@ -2,6 +2,7 @@ function CheckoutOrderApp () {
   this.itemList = {}
   this.basket = {}
   this.markDowns = {}
+  this.specials = {}
   this.totalPrice = 0
 
   this.scanItemsAndReturnTotalPrice = function (items) {
@@ -68,6 +69,18 @@ function CheckoutOrderApp () {
     })
 
     return this.markDowns
+  }
+
+  this.addSpecials = function (specials) {
+    specials = this.makeArray(specials)
+
+    specials.forEach(special => {
+      // const sardinesSpecial ={name: "sardines", buyQuantity: 1, getQuantity: 1, getDiscount: 100%}
+      this.specials[special.name] = [special.buyQuantity, special.getQuantity, special.getDiscount]
+    })
+
+    return this.specials
+  
   }
 
   this.calculateBasketPrice = function () {
