@@ -1,9 +1,12 @@
 let CheckoutOrderApp = require('./checkout-order-total').CheckoutOrderApp
 
 let checkoutOrderApp = new CheckoutOrderApp()
+
 // per-unit items
 const soup = { name: 'soup', price: 1.89 }
 const sardines = { name: 'sardines', price: 0.89 }
+
+// by-weight items
 const groundBeef = { name: 'ground beef', price: 2.5, byWeight: true }
 const bananas = { name: 'bananas', price: 0.25, byWeight: true }
 
