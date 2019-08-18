@@ -9,8 +9,8 @@ let checkoutOrderApp = new CheckoutOrderApp()
 // per-unit items
 const soup = { name: 'soup', price: 1.89 }
 const sardines = { name: 'sardines', price: 0.89 }
-const cards = {name: 'cards', price: 4.00}
-const batteries = {name: 'batteries', price: 10.00}
+const cards = { name: 'cards', price: 4.0 }
+const batteries = { name: 'batteries', price: 10.0 }
 
 // by-weight items
 const groundBeef = { name: 'ground beef', price: 2.5, byWeight: true }
@@ -125,23 +125,21 @@ describe('Use Case #3: support a mark-down', () => {
 // Use Case #4
 describe('Use Case #4: support a special in the form of "Buy N items get M at %X off" ', () => {
   // specials
-  const sardinesSpecial ={name: "sardines", buyQuantity: 1, getQuantity: 1, getDiscount: 1}
-  const cardSpecial= {name: "cards", buyQuantity: 2, getQuantity: 1, getDiscount: .50}
-  
+  const sardinesSpecial = { name: 'sardines', buyQuantity: 1, getQuantity: 1, getDiscount: 1 }
+  const cardSpecial = { name: 'cards', buyQuantity: 2, getQuantity: 1, getDiscount: 0.5 }
+
   test('a: add specials', () => {
     const specials = [sardinesSpecial, cardSpecial]
-    const specialsObj = { sardines: [1, 1, 1], cards: [2, 1, .50] }
+    const specialsObj = { sardines: [1, 1, 1], cards: [2, 1, 0.5] }
 
     expect(checkoutOrderApp.addSpecials(specials)).toEqual(expect.objectContaining(specialsObj))
-    console.log(checkoutOrderApp.specials)
-    
   })
 
-  // test('b: buy 1, get 1 free', () => {
-  //   checkoutOrderApp.basket = {} // empty the basket
-  //   const markDowns = [soupMarkDown, bananasMarkDown]
-  //   const markDownsObj = { soup: 1.5, bananas: 0.1 }
-  //   checkoutOrderApp.addMarkDowns(markDowns)
-  // })
+  test('b: buy 1, get 1 free', () => {
+    checkoutOrderApp.basket = {} // empty the basket
+    const scans = ['sardines', 'sardines', 'sardines', 'sardines', 'sardines']
+    const totalPrice = sardines.price * (5 - 2)
 
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
+  })
 })

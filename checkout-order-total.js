@@ -75,33 +75,73 @@ function CheckoutOrderApp () {
     specials = this.makeArray(specials)
 
     specials.forEach(special => {
-      // const sardinesSpecial ={name: "sardines", buyQuantity: 1, getQuantity: 1, getDiscount: 100%}
+      // itemSpecial ={name: "sardines", buyQuantity: 1, getQuantity: 1, getDiscount: 100%}
       this.specials[special.name] = [special.buyQuantity, special.getQuantity, special.getDiscount]
     })
 
     return this.specials
-  
   }
 
   this.calculateBasketPrice = function () {
     this.totalPrice = 0
-    let price = 0
-    let quantity = 0
+    let regularPrice = 0
+    let regularPriceQuantity = 0
     basket = this.basket
 
     Object.keys(basket).forEach(item => {
-      quantity = basket[item]
-      price = this.itemList[item]
+      regularPriceQuantity = basket[item]
+      regularPrice = this.itemList[item]
       markdown = this.markDowns[item] ? this.markDowns[item] : 0
+
+      specialsObj = this.applySpecials(item, regularPriceQuantity, regularPrice)
+      regularPriceQuantity = specialsObj.regularPriceQuantity
+      discountedQuantity = specialsObj.discountedQuantity
+      discountedPrice = specialsObj.discountedPrice
 
       // console.log('item:', item)
       // console.log(basket)
       // console.log(`quantity: ${quantity}, price: ${price}, markdown: ${markdown}`)
 
-      this.totalPrice += (price - markdown) * quantity
+      this.totalPrice += (regularPrice - markdown) * regularPriceQuantity + discountedPrice * discountedQuantity
     })
 
     return this.totalPrice
+  }
+
+  this.applySpecials = function (item, basketQuantity, regularPrice) {
+    const special = this.specials[item] || []
+    const specialType = special.length // type is deterimined by the number params in the special object
+    let basketQuantityTemp = 0
+    let buyQuantity = 0
+    let getQuantity = 0
+    let discount = 0
+    let discountedQuantity = 0
+    let regularPriceQuantity = 0 + basketQuantity
+
+    switch (specialType) {
+      case 3: // "Buy N items get M at %X off."
+        basketQuantityTemp = 0 + basketQuantity
+        buyQuantity = special[0]
+        getQuantity = special[1]
+        discount = special[2]
+        discountedQuantity = 0
+
+        while (basketQuantityTemp > buyQuantity && basketQuantityTemp - buyQuantity >= getQuantity) {
+          discountedQuantity += getQuantity
+          basketQuantityTemp -= buyQuantity + getQuantity
+        }
+
+        regularPriceQuantity = basketQuantity - discountedQuantity
+        break
+      default:
+        break
+    }
+    // the math final math
+    return {
+      regularPriceQuantity: regularPriceQuantity,
+      discountedQuantity: discountedQuantity,
+      discountedPrice: (1 - discount) * regularPrice
+    }
   }
 }
 
