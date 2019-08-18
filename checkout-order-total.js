@@ -2,15 +2,16 @@ function CheckoutOrderApp () {
   this.itemList = {}
   this.basket = {}
   this.markDowns = {}
+  this.totalPrice = 0
 
-  let price = 0
-  let quantity = 0
 
   this.scanItemsAndReturnTotalPrice = function (items) {
     items = this.makeArray(items)
-    let totalPrice = 0
     let basket = this.basket
     let itemIsByWeight = null
+
+    let price = 0
+    let quantity = 0
 
     // add items to basket and update the quantity of each item
     items.forEach(item => {
@@ -24,14 +25,23 @@ function CheckoutOrderApp () {
     })
 
     // calculate totalPrice
+    this.totalPrice = 0
+
     Object.keys(basket).forEach(item => {
+      
       quantity = basket[item]
       price = this.itemList[item]
+      markdown= this.markDowns[item] ? this.markDowns[item] : 0
 
-      totalPrice +=  price * quantity 
+      console.log('item:', item)
+      console.log(basket) 
+      console.log(`quantity: ${quantity}, price: ${price}, markdown: ${markdown}`)
+      
+
+      this.totalPrice +=  (price - markdown) * quantity 
     })
 
-    return totalPrice
+    return this.totalPrice
   }
 
   this.configurePricesAndReturnAnItemsList = function (items) {

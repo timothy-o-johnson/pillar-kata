@@ -11,27 +11,27 @@ const groundBeef = { name: 'ground beef', price: 2.5, byWeight: true }
 const bananas = { name: 'bananas', price: 0.25, byWeight: true }
 
 describe('Use Case #1: accepts a scanned item', () => {
-  test('configure the price of a per-unit item', () => {
+  test('a: configure the price of a per-unit item', () => {
     const itemList = `Items:\nsoup @ $1.89`
 
     expect(checkoutOrderApp.configurePricesAndReturnAnItemsList(soup)).toMatch(itemList)
   })
 
-  test('configure the price of several per-unit items', () => {
+  test('b: configure the price of several per-unit items', () => {
     const items = [soup, sardines]
     const itemList = `Items:\nsoup @ $1.89\nsardines @ $0.89`
 
     expect(checkoutOrderApp.configurePricesAndReturnAnItemsList(items)).toMatch(itemList)
   })
 
-  test('total reflects an increase by the per-unit price after a scan', () => {
+  test('c: total reflects an increase by the per-unit price after a scan', () => {
     const scan = 'soup'
     const total = 1.89
 
     expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scan)).toEqual(total)
   })
 
-  test('total reflects an increase by the per-unit price after several scans', () => {
+  test('d: total reflects an increase by the per-unit price after several scans', () => {
     checkoutOrderApp.basket = {} // empty the basket
     const scans = ['soup', 'soup']
     const total = 1.89 * 2
@@ -41,7 +41,7 @@ describe('Use Case #1: accepts a scanned item', () => {
 })
 
 describe('Use Case #2: accepts a scanned item and weight', () => {
-  test('configure the price of a by-weight item', () => {
+  test('a: configure the price of a by-weight item', () => {
     checkoutOrderApp.basket = {} // empty the basket
     const items = [soup, sardines, bananas]
     const itemList = `Items:\nsoup @ $1.89\nsardines @ $0.89\nbananas @ $0.25`
@@ -49,9 +49,10 @@ describe('Use Case #2: accepts a scanned item and weight', () => {
     expect(checkoutOrderApp.configurePricesAndReturnAnItemsList(items)).toMatch(itemList)
   })
 
-  test("total reflects an increase by an item's given weight", () => {
+  test("b: total reflects an increase by an item's given weight", () => {
+    checkoutOrderApp.basket = {} // empty the basket
     const scans = ['soup', 'soup', ['bananas', 1.3], ['bananas', 5], 'sardines', 'sardines']
-    const total = 1.89 * 2 + 0.25 * 1.3 + 0.25 * 5 + 0.89 * 2
+    const total = soup.price * 2 + bananas.price * 1.3 + bananas.price * 5 + sardines.price * 2
 
     expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(total)
   })
@@ -59,22 +60,32 @@ describe('Use Case #2: accepts a scanned item and weight', () => {
 
 describe('Use Case #3: support a mark-down', () => {
   // mark-downs
-  const soupMarkDown = {name: "soup", amount: 1.50}
-  const bananasMarkDown = {name: "bananas", amount: .10}
+  const soupMarkDown = { name: 'soup', amount: 1.5 }
+  const bananasMarkDown = { name: 'bananas', amount: 0.1 }
 
-  test('add mark-downs', () => {
+  test('a: add mark-downs', () => {
     checkoutOrderApp.basket = {} // empty the basket
     const markDowns = [soupMarkDown, bananasMarkDown]
-    const markDownsObj = {'soup': 1.50, 'bananas': .10}
+    const markDownsObj = { soup: 1.5, bananas: 0.1 }
 
     expect(checkoutOrderApp.addMarkDowns(markDowns)).toEqual(expect.objectContaining(markDownsObj))
   })
 
-  // test('A marked-down item will reflect the per-unit cost less the markdown when scanned', () => {
-  //   checkoutOrderApp.basket = {} // empty the basket
-  //   const items = [soup, sardines, bananas]
-  //   const itemList = `Items:\nsoup @ $1.89\nsardines @ $0.89\nbananas @ $0.25`
+  test('b: by-weight item will reflect the by-weight cost less the markdown when scanned', () => {
+    // add markdowns and then subtract them to make sure working properly
+    checkoutOrderApp.basket = {} // empty the basket
+    const scans = [['bananas', 5]]
+    const totalPrice = (bananas.price - bananasMarkDown.amount) * 5
 
-  //   expect(checkoutOrderApp.configurePricesAndReturnAnItemsList(items)).toMatch(itemList)
-  // })
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
+  })
+
+  test('c: by-weight items (plural) will reflect the by-weight cost less the markdown when scanned', () => {
+    // add markdowns and then subtract them to make sure working properly
+    checkoutOrderApp.basket = {} // empty the basket
+    const scans = [['bananas', 1.3], ['bananas', 5], 'sardines', 'sardines']
+    const total = (bananas.price -bananasMarkDown.amount) * 1.3 +(bananas.price -bananasMarkDown.amount)  * 5 + sardines.price * 2
+
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(total)
+  })
 })
