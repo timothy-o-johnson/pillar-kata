@@ -130,7 +130,7 @@ describe('Use Case #4: support a special in the form of "Buy N items get M at %X
 
   test('a: add buy-N-get-M-at-X-off specials', () => {
     const specials = [sardinesSpecial, cardSpecial]
-    const specialsObj = { sardines: [1, 1, 1], cards: [2, 1, 0.5] }
+    const specialsObj = { sardines: ['xOff', 1, 1, 1], cards: ['xOff', 2, 1, 0.5] }
 
     expect(checkoutOrderApp.addSpecials(specials)).toEqual(expect.objectContaining(specialsObj))
   })
@@ -145,7 +145,7 @@ describe('Use Case #4: support a special in the form of "Buy N items get M at %X
 
   test('c: buy 2, get 1 half off', () => {
     checkoutOrderApp.basket = {} // empty the basket
-    const items = [soup, sardines, bananas, cards]
+    const items = [soup, sardines, bananas, cards, batteries]
     checkoutOrderApp.configurePricesAndReturnAnItemsList(items) // stock the items
     
     const scans = ['sardines', 'sardines', 'sardines', 'sardines', 'sardines', 'cards', 'cards', 'cards']
@@ -157,14 +157,22 @@ describe('Use Case #4: support a special in the form of "Buy N items get M at %X
 
 // Use Case #5
 describe('Use Case #5: Support a special in the form of "N for $X."', () => {
-   // specials
-   const batteriesSpecial = { type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.00 }
-   
-   test('a: add N-for-X specials', () => {
-     const specials = [ batteriesSpecial]
-     const specialsObj = { sardines: [1, 1, 1], cards: [2, 1, 0.5], batteries: [3, 5.00] }
- 
-     expect(checkoutOrderApp.addSpecials(specials)).toEqual(expect.objectContaining(specialsObj))
-   })
+  // specials
+  const batteriesSpecial = { type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.0 }
+
+  test('a: add N-for-X specials', () => {
+    const specials = [batteriesSpecial]
+    const specialsObj = { sardines: ['xOff', 1, 1, 1], cards: ['xOff', 2, 1, 0.5], batteries: ['nForX', 3, 5.0] }
+
+    expect(checkoutOrderApp.addSpecials(specials)).toEqual(expect.objectContaining(specialsObj))
+  })
+
+  test('b: buy 3 for $5.00', () => {
+    checkoutOrderApp.basket = {} // empty the basket
+    const scans = ['batteries', 'batteries', 'batteries', 'batteries', 'batteries']
+    const totalPrice = 5.0 + batteries.price * 2
+
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
+  })
 })
 // Error checking -- what if an item is scanned but in the system

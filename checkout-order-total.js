@@ -82,12 +82,12 @@ function CheckoutOrderApp () {
         case 'xOff':
           // buy-N-get-M-at-X-off Special =
           // {type: 'xOff', name: "itemName", buyQuantity: 1, getQuantity: 1, getDiscount: .25}
-          this.specials[special.name] = [special.buyQuantity, special.getQuantity, special.getDiscount]
+          this.specials[special.name] = [type, special.buyQuantity, special.getQuantity, special.getDiscount]
           break
         case 'nForX':
           //  N-for-X specials =
           //  {type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.00 }
-          this.specials[special.name] = [special.buyQuantity, special.salesPrice]
+          this.specials[special.name] = [type, special.buyQuantity, special.salesPrice]
           break
         default:
           break
@@ -125,20 +125,21 @@ function CheckoutOrderApp () {
 
   this.applySpecials = function (item, basketQuantity, regularPrice) {
     const special = this.specials[item] || []
-    const specialType = special.length // type is deterimined by the number params in the special object
+    const specialType = special[0]
     let basketQuantityTemp = 0
     let buyQuantity = 0
     let getQuantity = 0
     let discount = 0
     let discountedQuantity = 0
     let regularPriceQuantity = 0 + basketQuantity
+    let discountedPrice = 0
 
     switch (specialType) {
-      case 3: // "Buy N items get M at %X off."
+      case 'xOff': // "Buy N items get M at %X off."
         basketQuantityTemp = 0 + basketQuantity
-        buyQuantity = special[0]
-        getQuantity = special[1]
-        discount = special[2]
+        buyQuantity = special[1]
+        getQuantity = special[2]
+        discount = special[3]
         discountedQuantity = 0
 
         while (basketQuantityTemp > buyQuantity && basketQuantityTemp - buyQuantity >= getQuantity) {
@@ -147,6 +148,22 @@ function CheckoutOrderApp () {
         }
 
         regularPriceQuantity = basketQuantity - discountedQuantity
+        discountedPrice = (1 - discount) * regularPrice
+        break
+      case 'nForX':
+        basketQuantityTemp = 0 + basketQuantity
+        buyQuantity = special[1]
+        discount = special[2]
+        discountedQuantity = 0
+
+        while (basketQuantityTemp >= buyQuantity) {
+          discountedQuantity += buyQuantity
+          basketQuantityTemp -= buyQuantity
+        }
+
+        regularPriceQuantity = basketQuantity - discountedQuantity
+        discountedQuantity = Math.floor(discountedQuantity / buyQuantity)
+        discountedPrice = discount
         break
       default:
         break
@@ -155,7 +172,7 @@ function CheckoutOrderApp () {
     return {
       regularPriceQuantity: regularPriceQuantity,
       discountedQuantity: discountedQuantity,
-      discountedPrice: (1 - discount) * regularPrice
+      discountedPrice: discountedPrice
     }
   }
 }
