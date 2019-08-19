@@ -20,6 +20,12 @@ const bananas = { name: 'bananas', price: 0.25, byWeight: true }
 const soupMarkDown = { name: 'soup', amount: 1.5 }
 const bananasMarkDown = { name: 'bananas', amount: 0.1 }
 
+// specials
+const sardinesSpecial = { type: 'xOff', name: 'sardines', buyQuantity: 1, getQuantity: 1, getDiscount: 1 }
+const cardSpecial = { type: 'xOff', name: 'cards', buyQuantity: 2, getQuantity: 1, getDiscount: 0.5 }
+
+const batteriesSpecial = { type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.0 }
+
 /**********/
 /* Tests */
 /**********/
@@ -124,10 +130,6 @@ describe('Use Case #3: support a mark-down', () => {
 
 // Use Case #4
 describe('Use Case #4: support a special in the form of "Buy N items get M at %X off" ', () => {
-  // specials
-  const sardinesSpecial = { type: 'xOff', name: 'sardines', buyQuantity: 1, getQuantity: 1, getDiscount: 1 }
-  const cardSpecial = {type: 'xOff', name: 'cards', buyQuantity: 2, getQuantity: 1, getDiscount: 0.5 }
-
   test('a: add buy-N-get-M-at-X-off specials', () => {
     const specials = [sardinesSpecial, cardSpecial]
     const specialsObj = { sardines: ['xOff', 1, 1, 1], cards: ['xOff', 2, 1, 0.5] }
@@ -147,7 +149,7 @@ describe('Use Case #4: support a special in the form of "Buy N items get M at %X
     checkoutOrderApp.basket = {} // empty the basket
     const items = [soup, sardines, bananas, cards, batteries]
     checkoutOrderApp.configurePricesAndReturnAnItemsList(items) // stock the items
-    
+
     const scans = ['sardines', 'sardines', 'sardines', 'sardines', 'sardines', 'cards', 'cards', 'cards']
     const totalPrice = sardines.price * (5 - 2) + cards.price * 2.5
 
@@ -157,9 +159,6 @@ describe('Use Case #4: support a special in the form of "Buy N items get M at %X
 
 // Use Case #5
 describe('Use Case #5: Support a special in the form of "N for $X."', () => {
-  // specials
-  const batteriesSpecial = { type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.0 }
-
   test('a: add N-for-X specials', () => {
     const specials = [batteriesSpecial]
     const specialsObj = { sardines: ['xOff', 1, 1, 1], cards: ['xOff', 2, 1, 0.5], batteries: ['nForX', 3, 5.0] }

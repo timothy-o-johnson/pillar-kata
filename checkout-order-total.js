@@ -14,13 +14,13 @@ function CheckoutOrderApp () {
       itemIsByWeight = Array.isArray(item)
 
       if (itemIsByWeight) {
-        this.loadBasketItemByWeight(item)
+        this.loadByWeightItemIntoBasket(item)
       } else {
-        this.loadBasketItemByUnit(item)
+        this.loadByUnitItemIntoBasket(item)
       }
     })
 
-    return this.calculateBasketPrice()
+    return this.calculateBasketPriceAndReturnBasketPrice()
   }
 
   this.configurePricesAndReturnAnItemsList = function (items) {
@@ -39,7 +39,7 @@ function CheckoutOrderApp () {
     return Array.isArray(arrayData) ? arrayData : [arrayData]
   }
 
-  this.loadBasketItemByWeight = function (item) {
+  this.loadByWeightItemIntoBasket = function (item) {
     let basket = this.basket
     let itemName = item[0]
     let itemWeight = parseFloat(item[1])
@@ -51,7 +51,7 @@ function CheckoutOrderApp () {
     }
   }
 
-  this.loadBasketItemByUnit = function (item) {
+  this.loadByUnitItemIntoBasket = function (item) {
     let basket = this.basket
 
     if (basket[item]) {
@@ -97,7 +97,7 @@ function CheckoutOrderApp () {
     return this.specials
   }
 
-  this.calculateBasketPrice = function () {
+  this.calculateBasketPriceAndReturnBasketPrice = function () {
     this.totalPrice = 0
     let regularPrice = 0
     let regularPriceQuantity = 0
@@ -125,54 +125,74 @@ function CheckoutOrderApp () {
 
   this.applySpecials = function (item, basketQuantity, regularPrice) {
     const special = this.specials[item] || []
-    const specialType = special[0]
-    let basketQuantityTemp = 0
-    let buyQuantity = 0
-    let getQuantity = 0
-    let discount = 0
-    let discountedQuantity = 0
-    let regularPriceQuantity = 0 + basketQuantity
+    const specialType = special[0]    
     let discountedPrice = 0
+    let discountedQuantity = 0
+    let regularPriceQuantity = basketQuantity
 
     switch (specialType) {
       case 'xOff': // "Buy N items get M at %X off."
-        basketQuantityTemp = 0 + basketQuantity
-        buyQuantity = special[1]
-        getQuantity = special[2]
-        discount = special[3]
-        discountedQuantity = 0
+        const xOffObj = this.calculateXOffSpecials(basketQuantity, special, regularPrice)
 
-        while (basketQuantityTemp > buyQuantity && basketQuantityTemp - buyQuantity >= getQuantity) {
-          discountedQuantity += getQuantity
-          basketQuantityTemp -= buyQuantity + getQuantity
-        }
+        
+        discountedPrice = xOffObj.discountedPrice
+        discountedQuantity = xOffObj.discountedQuantity
+        regularPriceQuantity = xOffObj.regularPriceQuantity
 
-        regularPriceQuantity = basketQuantity - discountedQuantity
-        discountedPrice = (1 - discount) * regularPrice
         break
       case 'nForX':
-        basketQuantityTemp = 0 + basketQuantity
-        buyQuantity = special[1]
-        discount = special[2]
-        discountedQuantity = 0
+        const nForXObj = this.calculateNforXSpecials(basketQuantity, special)
 
-        while (basketQuantityTemp >= buyQuantity) {
-          discountedQuantity += buyQuantity
-          basketQuantityTemp -= buyQuantity
-        }
+        discountedPrice = nForXObj.discountedPrice
+        discountedQuantity = nForXObj.discountedQuantity
+        regularPriceQuantity = nForXObj.regularPriceQuantity
 
-        regularPriceQuantity = basketQuantity - discountedQuantity
-        discountedQuantity = Math.floor(discountedQuantity / buyQuantity)
-        discountedPrice = discount
         break
       default:
         break
     }
-    // the math final math
+    
     return {
-      regularPriceQuantity: regularPriceQuantity,
+      discountedPrice: discountedPrice,
       discountedQuantity: discountedQuantity,
-      discountedPrice: discountedPrice
+      regularPriceQuantity: regularPriceQuantity,
+    }
+  }
+
+  this.calculateXOffSpecials = function (basketQuantity, special, regularPrice) {
+    let basketQuantityTemp = basketQuantity
+    const buyQuantity = special[1]
+    const getQuantity = special[2]
+    const discount = special[3]
+    let discountedQuantity = 0
+
+    while (basketQuantityTemp > buyQuantity && basketQuantityTemp - buyQuantity >= getQuantity) {
+      discountedQuantity += getQuantity
+      basketQuantityTemp -= buyQuantity + getQuantity
+    }
+
+    return {
+      discountedPrice: (1 - discount) * regularPrice,
+      discountedQuantity: discountedQuantity,
+      regularPriceQuantity: basketQuantity - discountedQuantity,
+    }
+  }
+
+  this.calculateNforXSpecials = function (basketQuantity, special) {
+    let basketQuantityTemp = basketQuantity
+    const buyQuantity = special[1]
+    const discount = special[2]
+    let discountedQuantity = 0
+
+    while (basketQuantityTemp >= buyQuantity) {
+      discountedQuantity += buyQuantity
+      basketQuantityTemp -= buyQuantity
+    }
+
+    return {
+      discountedPrice: discount,
+      discountedQuantity: Math.floor(discountedQuantity / buyQuantity),
+      regularPriceQuantity: basketQuantity - discountedQuantity,      
     }
   }
 }
