@@ -73,10 +73,25 @@ function CheckoutOrderApp () {
 
   this.addSpecials = function (specials) {
     specials = this.makeArray(specials)
+    let type = ''
 
     specials.forEach(special => {
-      // itemSpecial ={name: "sardines", buyQuantity: 1, getQuantity: 1, getDiscount: 100%}
-      this.specials[special.name] = [special.buyQuantity, special.getQuantity, special.getDiscount]
+      type = special.type
+
+      switch (type) {
+        case 'xOff':
+          // buy-N-get-M-at-X-off Special =
+          // {type: 'xOff', name: "itemName", buyQuantity: 1, getQuantity: 1, getDiscount: .25}
+          this.specials[special.name] = [special.buyQuantity, special.getQuantity, special.getDiscount]
+          break
+        case 'nForX':
+          //  N-for-X specials =
+          //  {type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.00 }
+          this.specials[special.name] = [special.buyQuantity, special.salesPrice]
+          break
+        default:
+          break
+      }
     })
 
     return this.specials

@@ -125,10 +125,10 @@ describe('Use Case #3: support a mark-down', () => {
 // Use Case #4
 describe('Use Case #4: support a special in the form of "Buy N items get M at %X off" ', () => {
   // specials
-  const sardinesSpecial = { name: 'sardines', buyQuantity: 1, getQuantity: 1, getDiscount: 1 }
-  const cardSpecial = { name: 'cards', buyQuantity: 2, getQuantity: 1, getDiscount: 0.5 }
+  const sardinesSpecial = { type: 'xOff', name: 'sardines', buyQuantity: 1, getQuantity: 1, getDiscount: 1 }
+  const cardSpecial = {type: 'xOff', name: 'cards', buyQuantity: 2, getQuantity: 1, getDiscount: 0.5 }
 
-  test('a: add specials', () => {
+  test('a: add buy-N-get-M-at-X-off specials', () => {
     const specials = [sardinesSpecial, cardSpecial]
     const specialsObj = { sardines: [1, 1, 1], cards: [2, 1, 0.5] }
 
@@ -155,4 +155,16 @@ describe('Use Case #4: support a special in the form of "Buy N items get M at %X
   })
 })
 
+// Use Case #5
+describe('Use Case #5: Support a special in the form of "N for $X."', () => {
+   // specials
+   const batteriesSpecial = { type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.00 }
+   
+   test('a: add N-for-X specials', () => {
+     const specials = [ batteriesSpecial]
+     const specialsObj = { sardines: [1, 1, 1], cards: [2, 1, 0.5], batteries: [3, 5.00] }
+ 
+     expect(checkoutOrderApp.addSpecials(specials)).toEqual(expect.objectContaining(specialsObj))
+   })
+})
 // Error checking -- what if an item is scanned but in the system
