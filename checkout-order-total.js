@@ -166,16 +166,15 @@ function CheckoutOrderApp () {
     const buyQuantity = special[1]
     const getQuantity = special[2]
     const discount = special[3]
-    const limit = special[4] ? Number.MAX_SAFE_INTEGER : special[4] 
+    const limit = special[4] ? special[4] : Number.MAX_SAFE_INTEGER
     let discountedQuantity = 0
 
-    while (basketQuantityTemp > buyQuantity 
-      && basketQuantityTemp - buyQuantity >= getQuantity) {
+    while (basketQuantityTemp > buyQuantity && basketQuantityTemp - buyQuantity >= getQuantity) {
       discountedQuantity += getQuantity
       basketQuantityTemp -= buyQuantity + getQuantity
       console.log(discountedQuantity, limit)
-      
-      if(discountedQuantity === limit) break
+
+      if (discountedQuantity === limit) break
     }
 
     return {
@@ -190,12 +189,13 @@ function CheckoutOrderApp () {
     const buyQuantity = special[1]
     const discount = special[2]
     let discountedQuantity = 0
+    const limit = special[3] ? special[3] : Number.MAX_SAFE_INTEGER
 
     while (basketQuantityTemp >= buyQuantity) {
       discountedQuantity += buyQuantity
       basketQuantityTemp -= buyQuantity
 
-
+      if (discountedQuantity === limit) break
     }
 
     return {

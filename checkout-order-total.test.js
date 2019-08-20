@@ -12,7 +12,7 @@ const sardines = { name: 'sardines', price: 0.89 }
 const cards = { name: 'cards', price: 4.0 }
 const batteries = { name: 'batteries', price: 10.0 }
 const lightbulbs = { name: 'lightbulbs', price: 2.0 }
-const orangeJuice = { nam: 'orange juice', price: 5.0}
+const orangeJuice = { name: 'orange juice', price: 5.0}
 
 // by-weight items
 const groundBeef = { name: 'ground beef', price: 2.5, byWeight: true }
@@ -191,7 +191,7 @@ describe('Use Case #6: Support a limit on specials', () => {
     limit: 6
   }
 
-  const orangeJuiceSpecial = { type: 'nForX', name: 'orange juice', buyQuantity: 4, salesPrice: 10, limit: 3 }
+  const orangeJuiceSpecial = { type: 'nForX', name: 'orange juice', buyQuantity: 4, salesPrice: 10, limit: 12 }
 
   test('a: add limits to specials', () => {
     const specials = [lightbulbSpecial, orangeJuiceSpecial]
@@ -200,7 +200,7 @@ describe('Use Case #6: Support a limit on specials', () => {
       cards: ['xOff', 2, 1, 0.5],
       batteries: ['nForX', 3, 5.0],
       lightbulbs: ['xOff', 2, 1, 1, 6],
-      'orange juice': ['nForX', 4, 10, 3]
+      'orange juice': ['nForX', 4, 10, 12]
     }
 
     expect(checkoutOrderApp.addSpecials(specials)).toEqual(expect.objectContaining(specialsObj))
@@ -214,6 +214,18 @@ describe('Use Case #6: Support a limit on specials', () => {
     const scans = []
     for(let i = 0; i < 20; i++) scans.push('lightbulbs') 
     const totalPrice = lightbulbs.price * (12 + 2)
+
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
+  })
+
+  test('c: buy 4 for 10, limit 12', () => {
+    checkoutOrderApp.basket = {} // empty the basket
+    const items = [soup, sardines, bananas, cards, batteries, lightbulbs, orangeJuice]
+    checkoutOrderApp.configurePricesAndReturnAnItemsList(items) // stock the item
+
+    const scans = []
+    for(let i = 0; i < 20; i++) scans.push('orange juice') 
+    const totalPrice = 30 + orangeJuice.price * (8)
 
     expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
   })
