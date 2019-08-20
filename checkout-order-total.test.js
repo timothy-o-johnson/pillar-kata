@@ -185,10 +185,10 @@ describe('Use Case #6: Support a limit on specials', () => {
   const lightbulbSpecial = {
     type: 'xOff',
     name: 'lightbulbs',
-    buyQuantity: 4,
-    getQuantity: 2,
-    getDiscount: 0.5,
-    limit: 3
+    buyQuantity: 2,
+    getQuantity: 1,
+    getDiscount: 1,
+    limit: 6
   }
 
   const orangeJuiceSpecial = { type: 'nForX', name: 'orange juice', buyQuantity: 4, salesPrice: 10, limit: 3 }
@@ -199,11 +199,23 @@ describe('Use Case #6: Support a limit on specials', () => {
       sardines: ['xOff', 1, 1, 1],
       cards: ['xOff', 2, 1, 0.5],
       batteries: ['nForX', 3, 5.0],
-      lightbulbs: ['xOff', 4, 2, 0.5, 3],
+      lightbulbs: ['xOff', 2, 1, 1, 6],
       'orange juice': ['nForX', 4, 10, 3]
     }
 
     expect(checkoutOrderApp.addSpecials(specials)).toEqual(expect.objectContaining(specialsObj))
+  })
+
+  test('b: buy 2, get 1 free, limit 6', () => {
+    checkoutOrderApp.basket = {} // empty the basket
+    const items = [soup, sardines, bananas, cards, batteries, lightbulbs, orangeJuice]
+    checkoutOrderApp.configurePricesAndReturnAnItemsList(items) // stock the item
+
+    const scans = []
+    for(let i = 0; i < 20; i++) scans.push('lightbulbs') 
+    const totalPrice = lightbulbs.price * (12 + 2)
+
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
   })
 })
 // Error checking -- what if an item is scanned but in the system
