@@ -92,6 +92,9 @@ function CheckoutOrderApp () {
         default:
           break
       }
+
+      // add limit if there is one
+      special.limit && this.specials[special.name].push(special.limit)
     })
 
     return this.specials
@@ -125,7 +128,7 @@ function CheckoutOrderApp () {
 
   this.applySpecials = function (item, basketQuantity, regularPrice) {
     const special = this.specials[item] || []
-    const specialType = special[0]    
+    const specialType = special[0]
     let discountedPrice = 0
     let discountedQuantity = 0
     let regularPriceQuantity = basketQuantity
@@ -134,7 +137,6 @@ function CheckoutOrderApp () {
       case 'xOff': // "Buy N items get M at %X off."
         const xOffObj = this.calculateXOffSpecials(basketQuantity, special, regularPrice)
 
-        
         discountedPrice = xOffObj.discountedPrice
         discountedQuantity = xOffObj.discountedQuantity
         regularPriceQuantity = xOffObj.regularPriceQuantity
@@ -151,11 +153,11 @@ function CheckoutOrderApp () {
       default:
         break
     }
-    
+
     return {
       discountedPrice: discountedPrice,
       discountedQuantity: discountedQuantity,
-      regularPriceQuantity: regularPriceQuantity,
+      regularPriceQuantity: regularPriceQuantity
     }
   }
 
@@ -174,7 +176,7 @@ function CheckoutOrderApp () {
     return {
       discountedPrice: (1 - discount) * regularPrice,
       discountedQuantity: discountedQuantity,
-      regularPriceQuantity: basketQuantity - discountedQuantity,
+      regularPriceQuantity: basketQuantity - discountedQuantity
     }
   }
 
@@ -192,7 +194,7 @@ function CheckoutOrderApp () {
     return {
       discountedPrice: discount,
       discountedQuantity: Math.floor(discountedQuantity / buyQuantity),
-      regularPriceQuantity: basketQuantity - discountedQuantity,      
+      regularPriceQuantity: basketQuantity - discountedQuantity
     }
   }
 }

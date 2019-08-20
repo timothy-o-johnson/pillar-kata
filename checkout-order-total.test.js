@@ -11,6 +11,8 @@ const soup = { name: 'soup', price: 1.89 }
 const sardines = { name: 'sardines', price: 0.89 }
 const cards = { name: 'cards', price: 4.0 }
 const batteries = { name: 'batteries', price: 10.0 }
+const lightbulbs = { name: 'lightbulbs', price: 2.0 }
+const orangeJuice = { nam: 'orange juice', price: 5.0}
 
 // by-weight items
 const groundBeef = { name: 'ground beef', price: 2.5, byWeight: true }
@@ -21,9 +23,12 @@ const soupMarkDown = { name: 'soup', amount: 1.5 }
 const bananasMarkDown = { name: 'bananas', amount: 0.1 }
 
 // specials
+
+// ..of type 'xOff'
 const sardinesSpecial = { type: 'xOff', name: 'sardines', buyQuantity: 1, getQuantity: 1, getDiscount: 1 }
 const cardSpecial = { type: 'xOff', name: 'cards', buyQuantity: 2, getQuantity: 1, getDiscount: 0.5 }
 
+// ... of type 'nForX'
 const batteriesSpecial = { type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.0 }
 
 /**********/
@@ -172,6 +177,33 @@ describe('Use Case #5: Support a special in the form of "N for $X."', () => {
     const totalPrice = 5.0 + batteries.price * 2
 
     expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
+  })
+})
+
+// Use Case #6
+describe('Use Case #6: Support a limit on specials', () => {
+  const lightbulbSpecial = {
+    type: 'xOff',
+    name: 'lightbulbs',
+    buyQuantity: 4,
+    getQuantity: 2,
+    getDiscount: 0.5,
+    limit: 3
+  }
+
+  const orangeJuiceSpecial = { type: 'nForX', name: 'orange juice', buyQuantity: 4, salesPrice: 10, limit: 3 }
+
+  test('a: add limits to specials', () => {
+    const specials = [lightbulbSpecial, orangeJuiceSpecial]
+    const specialsObj = {
+      sardines: ['xOff', 1, 1, 1],
+      cards: ['xOff', 2, 1, 0.5],
+      batteries: ['nForX', 3, 5.0],
+      lightbulbs: ['xOff', 4, 2, 0.5, 3],
+      'orange juice': ['nForX', 4, 10, 3]
+    }
+
+    expect(checkoutOrderApp.addSpecials(specials)).toEqual(expect.objectContaining(specialsObj))
   })
 })
 // Error checking -- what if an item is scanned but in the system
