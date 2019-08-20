@@ -79,15 +79,18 @@ function CheckoutOrderApp () {
       type = special.type
 
       switch (type) {
-        case 'xOff':
-          // buy-N-get-M-at-X-off Special =
-          // {type: 'xOff', name: "itemName", buyQuantity: 1, getQuantity: 1, getDiscount: .25}
-          this.specials[special.name] = [type, special.buyQuantity, special.getQuantity, special.getDiscount]
+        case 'equalOrLesser':
+          this.specials[special.name] = [type, special.discount]
           break
         case 'nForX':
           //  N-for-X specials =
           //  {type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.00 }
           this.specials[special.name] = [type, special.buyQuantity, special.salesPrice]
+          break
+        case 'xOff':
+          // buy-N-get-M-at-X-off Special =
+          // {type: 'xOff', name: "itemName", buyQuantity: 1, getQuantity: 1, getDiscount: .25}
+          this.specials[special.name] = [type, special.buyQuantity, special.getQuantity, special.getDiscount]
           break
         default:
           break

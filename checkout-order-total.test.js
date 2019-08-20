@@ -286,4 +286,25 @@ describe('Use Case #7: Support removing a scanned item', () => {
   })
 })
 
+
+// Use Case #8
+describe('Use Case #8: Support "Buy N, get M of equal or lesser value for %X off" on weighted items', () => {
+  test('a: add "equalOrLesser" special', () => {
+   const beefSpecial = {type: 'equalOrLesser', name: 'beef', discount: .5 }
+
+   const specialsObj = {
+    sardines: ['xOff', 1, 1, 1],
+    cards: ['xOff', 2, 1, 0.5],
+    batteries: ['nForX', 3, 5.0],
+    lightbulbs: ['xOff', 2, 1, 1, 6],
+    'orange juice': ['nForX', 4, 10, 12],
+    beef: ['equalOrLesser', .5]
+  }
+
+  expect(checkoutOrderApp.addSpecials(beefSpecial)).toEqual(expect.objectContaining(specialsObj))
+  })
+
+})
 // Error checking -- what if an item is scanned but in the system
+
+// clean up: arrange things in alphabetical order
