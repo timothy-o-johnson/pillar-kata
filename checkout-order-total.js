@@ -1,11 +1,11 @@
 function CheckoutOrderApp () {
-  this.itemList = {}
-  this.basket = {}
-  this.markDowns = {}
-  this.specials = {}
-  this.totalPrice = 0
+  this.itemList = {} // collection of items and prices saved in the system
+  this.basket = {} // count of items in the customers basket
+  this.markDowns = {} // collection of markdowns
+  this.specials = {} // collection of current specials
+  this.totalPrice = 0 // total price of all items after specials and mark-downs
 
-  this.scanItemsAndReturnTotalPrice = function (items) {
+  this.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice = function (items) {
     items = this.makeArray(items)
     let itemIsByWeight = null
 
@@ -20,10 +20,10 @@ function CheckoutOrderApp () {
       }
     })
 
-    return this.calculateBasketPriceAndReturnBasketPrice()
+    return this.calculateBasketPriceAddToGlobalTotalPriceObjectAndReturnGlobalPriceObject()
   }
 
-  this.configurePricesAndReturnAnItemsList = function (items) {
+  this.addItemsToGlobalItemListObjectAndReturnGlobalItemListObject = function (items) {
     let result = 'Items:\n'
     items = this.makeArray(items)
 
@@ -61,7 +61,7 @@ function CheckoutOrderApp () {
     }
   }
 
-  this.addMarkDowns = function (markDowns) {
+  this.addMarkDownsToGlobalMarkDownObjectReturnGlobalMarkDownObject = function (markDowns) {
     markDowns = this.makeArray(markDowns)
 
     markDowns.forEach(markDown => {
@@ -71,7 +71,7 @@ function CheckoutOrderApp () {
     return this.markDowns
   }
 
-  this.addSpecials = function (specials) {
+  this.addSpecialsToGlobalSpecialsObjectAndReturnGlobalSpecialsObject = function (specials) {
     specials = this.makeArray(specials)
     let type = ''
 
@@ -84,7 +84,7 @@ function CheckoutOrderApp () {
           //  {type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.00 }
           this.specials[special.name] = [type, special.buyQuantity, special.salesPrice]
           break
-        case 'equalOrLesser':
+        case 'equalOrLesser': // set up is similar to XOff special so just continue below
         case 'xOff':
           // buy-N-get-M-at-X-off Special =
           // {type: 'xOff', name: "itemName", buyQuantity: 1, getQuantity: 1, getDiscount: .25}
@@ -94,32 +94,29 @@ function CheckoutOrderApp () {
           break
       }
 
-      // add limit if there is one
+      // add limit to special if there is one (ex. 'buy 2, get 1 free, limit 6')
       special.limit && this.specials[special.name].push(special.limit)
     })
 
     return this.specials
   }
 
-  this.calculateBasketPriceAndReturnBasketPrice = function () {
+  this.calculateBasketPriceAddToGlobalTotalPriceObjectAndReturnGlobalPriceObject = function () {
     this.totalPrice = 0
     let regularPrice = 0
     let regularPriceQuantity = 0
     basket = this.basket
 
+    // for each item in the basket calculate it's price by adding mark-downs and applying specials
     Object.keys(basket).forEach(item => {
       regularPriceQuantity = basket[item]
       regularPrice = this.itemList[item]
       markdown = this.markDowns[item] ? this.markDowns[item] : 0
 
-      specialsObj = this.applySpecials(item, regularPriceQuantity, regularPrice)
+      specialsObj = this.applyApplicableSpecialsFromGlobalSpecialsObjectReturnAnObjectContainingDiscountedPriceDiscountedQuantityAndRegularyPriceQuantity(item, regularPriceQuantity, regularPrice)
       regularPriceQuantity = specialsObj.regularPriceQuantity
       discountedQuantity = specialsObj.discountedQuantity
       discountedPrice = specialsObj.discountedPrice
-
-      // console.log('item:', item)
-      // console.log(basket)
-      // console.log(`quantity: ${quantity}, price: ${price}, markdown: ${markdown}`)
 
       this.totalPrice += (regularPrice - markdown) * regularPriceQuantity + discountedPrice * discountedQuantity
     })
@@ -127,7 +124,7 @@ function CheckoutOrderApp () {
     return this.totalPrice
   }
 
-  this.applySpecials = function (item, basketQuantity, regularPrice) {
+  this.applyApplicableSpecialsFromGlobalSpecialsObjectReturnAnObjectContainingDiscountedPriceDiscountedQuantityAndRegularyPriceQuantity = function (item, basketQuantity, regularPrice) {
     const special = this.specials[item] || []
     const specialType = special[0]
     let discountedPrice = 0
@@ -135,31 +132,30 @@ function CheckoutOrderApp () {
     let regularPriceQuantity = basketQuantity
 
     switch (specialType) {
-      case 'equalOrLesser':
-        const equalOrLesserObj = this.calculateEqualOrLesserObjSpecials(basketQuantity, special, regularPrice)
+      case 'equalOrLesser': // "Buy N, get M of equal or lesser value for %X off" on weighted items
+        const equalOrLesserObj = this.calculateEqualOrLesserObjSpecialsReturnAnObjectWithDiscountedPriceDiscountedQuantityAndRegularyPriceQuantity(basketQuantity, special, regularPrice)
 
         discountedPrice = equalOrLesserObj.discountedPrice
         discountedQuantity = equalOrLesserObj.discountedQuantity
         regularPriceQuantity = equalOrLesserObj.regularPriceQuantity
         break
 
-      case 'nForX':
-        const nForXObj = this.calculateNforXSpecials(basketQuantity, special)
+      case 'nForX': // "N items for $X"
+        const nForXObj = this.calculateNforXSpecialsReturnAnObjectWithDiscountedPriceDiscountedQuantityAndRegularyPriceQuantity(basketQuantity, special)
 
         discountedPrice = nForXObj.discountedPrice
         discountedQuantity = nForXObj.discountedQuantity
         regularPriceQuantity = nForXObj.regularPriceQuantity
-
         break
 
       case 'xOff': // "Buy N items get M at %X off."
-        const xOffObj = this.calculateXOffSpecials(basketQuantity, special, regularPrice)
+        const xOffObj = this.calculateXOffSpecialsReturnAnObjectWithDiscountedPriceDiscountedQuantityAndRegularyPriceQuantity(basketQuantity, special, regularPrice)
 
         discountedPrice = xOffObj.discountedPrice
         discountedQuantity = xOffObj.discountedQuantity
         regularPriceQuantity = xOffObj.regularPriceQuantity
-
         break
+
       default:
         break
     }
@@ -171,11 +167,11 @@ function CheckoutOrderApp () {
     }
   }
 
-  this.calculateEqualOrLesserObjSpecials = function (basketQuantity, special, regularPrice) {
-    return this.calculateXOffSpecials(basketQuantity, special, regularPrice)
+  this.calculateEqualOrLesserObjSpecialsReturnAnObjectWithDiscountedPriceDiscountedQuantityAndRegularyPriceQuantity = function (basketQuantity, special, regularPrice) {
+    return this.calculateXOffSpecialsReturnAnObjectWithDiscountedPriceDiscountedQuantityAndRegularyPriceQuantity(basketQuantity, special, regularPrice)
   }
 
-  this.calculateNforXSpecials = function (basketQuantity, special) {
+  this.calculateNforXSpecialsReturnAnObjectWithDiscountedPriceDiscountedQuantityAndRegularyPriceQuantity = function (basketQuantity, special) {
     let basketQuantityTemp = basketQuantity
     const buyQuantity = special[1]
     const discount = special[2]
@@ -196,7 +192,7 @@ function CheckoutOrderApp () {
     }
   }
 
-  this.calculateXOffSpecials = function (basketQuantity, special, regularPrice) {
+  this.calculateXOffSpecialsReturnAnObjectWithDiscountedPriceDiscountedQuantityAndRegularyPriceQuantity = function (basketQuantity, special, regularPrice) {
     let basketQuantityTemp = basketQuantity
     const buyQuantity = special[1]
     const getQuantity = special[2]
@@ -207,7 +203,6 @@ function CheckoutOrderApp () {
     while (basketQuantityTemp > buyQuantity && basketQuantityTemp - buyQuantity >= getQuantity) {
       discountedQuantity += getQuantity
       basketQuantityTemp -= buyQuantity + getQuantity
-      // console.log(discountedQuantity, limit)
 
       if (discountedQuantity === limit) break
     }
@@ -219,7 +214,7 @@ function CheckoutOrderApp () {
     }
   }
 
-  this.removeScannedItemsAndReturnTotalPrice = function (items) {
+  this.removeScannedItemsFromGlobalBasketObjectAndReturnGlobalTotalPrice = function (items) {
     items = this.makeArray(items)
     let quantityOfItemInBasket
 
@@ -231,7 +226,7 @@ function CheckoutOrderApp () {
       }
     })
 
-    return this.calculateBasketPriceAndReturnBasketPrice()
+    return this.calculateBasketPriceAddToGlobalTotalPriceObjectAndReturnGlobalPriceObject()
   }
 }
 
