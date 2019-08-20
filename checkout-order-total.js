@@ -172,7 +172,7 @@ function CheckoutOrderApp () {
     while (basketQuantityTemp > buyQuantity && basketQuantityTemp - buyQuantity >= getQuantity) {
       discountedQuantity += getQuantity
       basketQuantityTemp -= buyQuantity + getQuantity
-      console.log(discountedQuantity, limit)
+      // console.log(discountedQuantity, limit)
 
       if (discountedQuantity === limit) break
     }
@@ -203,6 +203,21 @@ function CheckoutOrderApp () {
       discountedQuantity: Math.floor(discountedQuantity / buyQuantity),
       regularPriceQuantity: basketQuantity - discountedQuantity
     }
+  }
+
+  this.removeScannedItemsAndReturnTotalPrice = function (items) {
+    items = this.makeArray(items)
+    let quantityOfItemInBasket
+
+    items.forEach(item => {
+      quantityOfItemInBasket = this.basket[item]
+
+      if (quantityOfItemInBasket > 0) {
+        this.basket[item]--
+      }
+    })
+
+    return this.calculateBasketPriceAndReturnBasketPrice()
   }
 }
 

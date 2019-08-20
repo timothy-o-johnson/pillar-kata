@@ -12,7 +12,7 @@ const sardines = { name: 'sardines', price: 0.89 }
 const cards = { name: 'cards', price: 4.0 }
 const batteries = { name: 'batteries', price: 10.0 }
 const lightbulbs = { name: 'lightbulbs', price: 2.0 }
-const orangeJuice = { name: 'orange juice', price: 5.0}
+const orangeJuice = { name: 'orange juice', price: 5.0 }
 
 // by-weight items
 const groundBeef = { name: 'ground beef', price: 2.5, byWeight: true }
@@ -212,7 +212,7 @@ describe('Use Case #6: Support a limit on specials', () => {
     checkoutOrderApp.configurePricesAndReturnAnItemsList(items) // stock the item
 
     const scans = []
-    for(let i = 0; i < 20; i++) scans.push('lightbulbs') 
+    for (let i = 0; i < 20; i++) scans.push('lightbulbs')
     const totalPrice = lightbulbs.price * (12 + 2)
 
     expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
@@ -224,10 +224,40 @@ describe('Use Case #6: Support a limit on specials', () => {
     checkoutOrderApp.configurePricesAndReturnAnItemsList(items) // stock the item
 
     const scans = []
-    for(let i = 0; i < 20; i++) scans.push('orange juice') 
-    const totalPrice = 30 + orangeJuice.price * (8)
+    for (let i = 0; i < 20; i++) scans.push('orange juice')
+    const totalPrice = 30 + orangeJuice.price * 8
 
     expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
   })
 })
+
+// Use Case #7
+describe('Use Case #7: Support removing a scanned item', () => {
+  test('a: keep the total correct after invalidating a X-for-N special', () => {
+    // empty the basket
+    checkoutOrderApp.basket = {}
+
+    // calculate price with special
+    let scans = []
+    for (let i = 0; i < 20; i++) scans.push('orange juice')
+    let expectedTotalWithSpecial = 30 + orangeJuice.price * 8
+    let actualTotalWithSpecial = checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)
+    let part1IsOkay = expectedTotalWithSpecial === actualTotalWithSpecial
+
+    // delete enough items to invalidate a special
+    let scansForRemoval = []
+    for (let i = 0; i < 10; i++) scansForRemoval.push('orange juice')
+    
+    // verify that the new price without special
+    // 10 items = 4 @ $10 + 4 @ $10 + 2 @ reg price
+    let totalWithoutSpecial = 20 + orangeJuice.price * 2
+
+    // determine if there's a problem with the set up
+    totalWithoutSpecial = part1IsOkay ? totalWithoutSpecial : "part 1 ain't okay"
+
+    expect(checkoutOrderApp.removeScannedItemsAndReturnTotalPrice(scansForRemoval)).toEqual(totalWithoutSpecial)
+    console.log('is part1IsOkay?', part1IsOkay)
+  })
+})
+
 // Error checking -- what if an item is scanned but in the system
