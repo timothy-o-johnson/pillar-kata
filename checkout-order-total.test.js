@@ -233,7 +233,7 @@ describe('Use Case #6: Support a limit on specials', () => {
 
 // Use Case #7
 describe('Use Case #7: Support removing a scanned item', () => {
-  test('a: keep the total correct after invalidating a X-for-N special', () => {
+  test('a: keep the correct total after invalidating a X-for-N special', () => {
     // empty the basket
     checkoutOrderApp.basket = {}
 
@@ -247,10 +247,36 @@ describe('Use Case #7: Support removing a scanned item', () => {
     // delete enough items to invalidate a special
     let scansForRemoval = []
     for (let i = 0; i < 10; i++) scansForRemoval.push('orange juice')
-    
+
     // verify that the new price without special
     // 10 items = 4 @ $10 + 4 @ $10 + 2 @ reg price
     let totalWithoutSpecial = 20 + orangeJuice.price * 2
+
+    // determine if there's a problem with the set up
+    totalWithoutSpecial = part1IsOkay ? totalWithoutSpecial : "part 1 ain't okay"
+
+    expect(checkoutOrderApp.removeScannedItemsAndReturnTotalPrice(scansForRemoval)).toEqual(totalWithoutSpecial)
+    console.log('is part1IsOkay?', part1IsOkay)
+  })
+
+  test('b: keep the correct total after invalidating an X-Off special', () => {
+    // empty the basket
+    checkoutOrderApp.basket = {}
+
+    // calculate price with special
+    let scans = []
+    for (let i = 0; i < 20; i++) scans.push('lightbulbs')
+    let expectedTotalWithSpecial = lightbulbs.price * (12 + 2)
+    let actualTotalWithSpecial = checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)
+    let part1IsOkay = expectedTotalWithSpecial === actualTotalWithSpecial
+
+    // delete enough items to invalidate a special
+    let scansForRemoval = []
+    for (let i = 0; i < 13; i++) scansForRemoval.push('lightbulbs')
+
+    // verify that the new price without special (buy 2, get 1 free, limit 6)
+    // 7 items = 4 @ reg price + 2 @ free + 1 @ reg price
+    let totalWithoutSpecial = 4 * lightbulbs.price + 2 * 0 + 1 * lightbulbs.price
 
     // determine if there's a problem with the set up
     totalWithoutSpecial = part1IsOkay ? totalWithoutSpecial : "part 1 ain't okay"
