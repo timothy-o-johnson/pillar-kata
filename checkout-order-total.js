@@ -79,14 +79,12 @@ function CheckoutOrderApp () {
       type = special.type
 
       switch (type) {
-        case 'equalOrLesser':
-          this.specials[special.name] = [type, special.discount]
-          break
         case 'nForX':
           //  N-for-X specials =
           //  {type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.00 }
           this.specials[special.name] = [type, special.buyQuantity, special.salesPrice]
           break
+        case 'equalOrLesser':
         case 'xOff':
           // buy-N-get-M-at-X-off Special =
           // {type: 'xOff', name: "itemName", buyQuantity: 1, getQuantity: 1, getDiscount: .25}
@@ -137,20 +135,29 @@ function CheckoutOrderApp () {
     let regularPriceQuantity = basketQuantity
 
     switch (specialType) {
-      case 'xOff': // "Buy N items get M at %X off."
-        const xOffObj = this.calculateXOffSpecials(basketQuantity, special, regularPrice)
+      case 'equalOrLesser':
+        const equalOrLesserObj = this.calculateEqualOrLesserObjSpecials(basketQuantity, special, regularPrice)
 
-        discountedPrice = xOffObj.discountedPrice
-        discountedQuantity = xOffObj.discountedQuantity
-        regularPriceQuantity = xOffObj.regularPriceQuantity
-
+        discountedPrice = equalOrLesserObj.discountedPrice
+        discountedQuantity = equalOrLesserObj.discountedQuantity
+        regularPriceQuantity = equalOrLesserObj.regularPriceQuantity
         break
+
       case 'nForX':
         const nForXObj = this.calculateNforXSpecials(basketQuantity, special)
 
         discountedPrice = nForXObj.discountedPrice
         discountedQuantity = nForXObj.discountedQuantity
         regularPriceQuantity = nForXObj.regularPriceQuantity
+
+        break
+
+      case 'xOff': // "Buy N items get M at %X off."
+        const xOffObj = this.calculateXOffSpecials(basketQuantity, special, regularPrice)
+
+        discountedPrice = xOffObj.discountedPrice
+        discountedQuantity = xOffObj.discountedQuantity
+        regularPriceQuantity = xOffObj.regularPriceQuantity
 
         break
       default:
@@ -161,6 +168,31 @@ function CheckoutOrderApp () {
       discountedPrice: discountedPrice,
       discountedQuantity: discountedQuantity,
       regularPriceQuantity: regularPriceQuantity
+    }
+  }
+
+  this.calculateEqualOrLesserObjSpecials = function (basketQuantity, special, regularPrice) {
+    return this.calculateXOffSpecials(basketQuantity, special, regularPrice)
+  }
+
+  this.calculateNforXSpecials = function (basketQuantity, special) {
+    let basketQuantityTemp = basketQuantity
+    const buyQuantity = special[1]
+    const discount = special[2]
+    let discountedQuantity = 0
+    const limit = special[3] ? special[3] : Number.MAX_SAFE_INTEGER
+
+    while (basketQuantityTemp >= buyQuantity) {
+      discountedQuantity += buyQuantity
+      basketQuantityTemp -= buyQuantity
+
+      if (discountedQuantity === limit) break
+    }
+
+    return {
+      discountedPrice: discount,
+      discountedQuantity: Math.floor(discountedQuantity / buyQuantity),
+      regularPriceQuantity: basketQuantity - discountedQuantity
     }
   }
 
@@ -183,27 +215,6 @@ function CheckoutOrderApp () {
     return {
       discountedPrice: (1 - discount) * regularPrice,
       discountedQuantity: discountedQuantity,
-      regularPriceQuantity: basketQuantity - discountedQuantity
-    }
-  }
-
-  this.calculateNforXSpecials = function (basketQuantity, special) {
-    let basketQuantityTemp = basketQuantity
-    const buyQuantity = special[1]
-    const discount = special[2]
-    let discountedQuantity = 0
-    const limit = special[3] ? special[3] : Number.MAX_SAFE_INTEGER
-
-    while (basketQuantityTemp >= buyQuantity) {
-      discountedQuantity += buyQuantity
-      basketQuantityTemp -= buyQuantity
-
-      if (discountedQuantity === limit) break
-    }
-
-    return {
-      discountedPrice: discount,
-      discountedQuantity: Math.floor(discountedQuantity / buyQuantity),
       regularPriceQuantity: basketQuantity - discountedQuantity
     }
   }

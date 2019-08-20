@@ -290,7 +290,7 @@ describe('Use Case #7: Support removing a scanned item', () => {
 // Use Case #8
 describe('Use Case #8: Support "Buy N, get M of equal or lesser value for %X off" on weighted items', () => {
   test('a: add "equalOrLesser" special', () => {
-   const beefSpecial = {type: 'equalOrLesser', name: 'beef', discount: .5 }
+   const groundBeefSpecial = {type: 'equalOrLesser', name: 'ground beef', buyQuantity: 2, getQuantity: 1, getDiscount: .5 }
 
    const specialsObj = {
     sardines: ['xOff', 1, 1, 1],
@@ -298,12 +298,24 @@ describe('Use Case #8: Support "Buy N, get M of equal or lesser value for %X off
     batteries: ['nForX', 3, 5.0],
     lightbulbs: ['xOff', 2, 1, 1, 6],
     'orange juice': ['nForX', 4, 10, 12],
-    beef: ['equalOrLesser', .5]
+    'ground beef': ['equalOrLesser', 2, 1, .5]
   }
 
-  expect(checkoutOrderApp.addSpecials(beefSpecial)).toEqual(expect.objectContaining(specialsObj))
+  expect(checkoutOrderApp.addSpecials(groundBeefSpecial)).toEqual(expect.objectContaining(specialsObj))
   })
 
+
+  test('b: buy 2 pounds of ground beef, get 1 pound half off', () => {
+    checkoutOrderApp.basket = {} // empty the basket
+    const items = [soup, sardines, bananas, cards, batteries, lightbulbs, orangeJuice, groundBeef]
+    checkoutOrderApp.configurePricesAndReturnAnItemsList(items) // stock the item
+
+    const scans = [['ground beef', 4]]
+    // special price = 2 @ reg price + 1 @ 1/2 price + 1 @ reg price
+    const totalPrice = 2 * groundBeef.price + 1 * groundBeef.price/2 + 1 * groundBeef.price
+
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
+  })
 })
 // Error checking -- what if an item is scanned but in the system
 
