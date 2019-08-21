@@ -21,46 +21,41 @@ const cards = new Item('cards', 4.0)
 const batteries = new Item('batteries', 10)
 const lightbulbs = new Item('lightbulbs', 2)
 const orangeJuice = new Item('orange juice', 5)
-
-// by-weight items
 const groundBeef = new Item('ground beef', 2.5, true)
-const bananas =  new Item('bananas', .25, true)
+const bananas = new Item('bananas', 0.25, true)
 
 // mark-downs
 const soupMarkDown = { name: 'soup', amount: 1.5 }
 const bananasMarkDown = { name: 'bananas', amount: 0.1 }
 
-// specials
-
-// ..of type 'xOff'
+// 'xOff' Specials
 const XOffSpecial = function (type, name, buyQuantity, getQuantity, getDiscount, limit) {
-  return{
+  return {
     type: type,
     name: name,
     buyQuantity: buyQuantity,
     getQuantity: getQuantity,
     getDiscount: getDiscount,
-    limit: limit,
+    limit: limit
   }
 }
 const sardinesSpecial = new XOffSpecial('xOff', 'sardines', 1, 1, 1)
-const cardSpecial = new XOffSpecial('xOff', 'cards', 2, 1, .5) 
+const cardSpecial = new XOffSpecial('xOff', 'cards', 2, 1, 0.5)
 const lightbulbSpecial = new XOffSpecial('xOff', 'lightbulbs', 2, 1, 1, 6)
-const groundBeefSpecial = new XOffSpecial('equalOrLesser', 'ground beef', 2, 1, 0.5) 
+const groundBeefSpecial = new XOffSpecial('equalOrLesser', 'ground beef', 2, 1, 0.5)
 
-// ... of type 'nForX'
+// 'nForX' Specials
 const NForXSpecial = function (type, name, buyQuantity, salesPrice, limit) {
-  return{
+  return {
     type: type,
     name: name,
     buyQuantity: buyQuantity,
     salesPrice: salesPrice,
-    limit: limit,
+    limit: limit
   }
 }
-const batteriesSpecial = new NForXSpecial('nForX', 'batteries', 3, 5.)
+const batteriesSpecial = new NForXSpecial('nForX', 'batteries', 3, 5)
 const orangeJuiceSpecial = new NForXSpecial('nForX', 'orange juice', 4, 10, 12)
-
 
 /** * End of Set Up  ***/
 
