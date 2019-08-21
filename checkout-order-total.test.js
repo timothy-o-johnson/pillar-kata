@@ -6,17 +6,25 @@ let CheckoutOrderApp = require('./checkout-order-total').CheckoutOrderApp
 
 let checkoutOrderApp = new CheckoutOrderApp()
 
-// per-unit items
-const soup = { name: 'soup', price: 1.89 }
-const sardines = { name: 'sardines', price: 0.89 }
-const cards = { name: 'cards', price: 4.0 }
-const batteries = { name: 'batteries', price: 10.0 }
-const lightbulbs = { name: 'lightbulbs', price: 2.0 }
-const orangeJuice = { name: 'orange juice', price: 5.0 }
+// Items
+const Item = function (name, price, byWeight) {
+  return {
+    name: name,
+    price: price,
+    byWeight: byWeight
+  }
+}
+
+const soup = new Item('soup', 1.89)
+const sardines = new Item('sardines', 0.89)
+const cards = new Item('cards', 4.0)
+const batteries = new Item('batteries', 10)
+const lightbulbs = new Item('lightbulbs', 2)
+const orangeJuice = new Item('orange juice', 5)
 
 // by-weight items
-const groundBeef = { name: 'ground beef', price: 2.5, byWeight: true }
-const bananas = { name: 'bananas', price: 0.25, byWeight: true }
+const groundBeef = new Item('ground beef', 2.5, true)
+const bananas =  new Item('bananas', .25, true)
 
 // mark-downs
 const soupMarkDown = { name: 'soup', amount: 1.5 }
@@ -25,27 +33,34 @@ const bananasMarkDown = { name: 'bananas', amount: 0.1 }
 // specials
 
 // ..of type 'xOff'
-const sardinesSpecial = { type: 'xOff', name: 'sardines', buyQuantity: 1, getQuantity: 1, getDiscount: 1 }
-const cardSpecial = { type: 'xOff', name: 'cards', buyQuantity: 2, getQuantity: 1, getDiscount: 0.5 }
-const lightbulbSpecial = {
-  type: 'xOff',
-  name: 'lightbulbs',
-  buyQuantity: 2,
-  getQuantity: 1,
-  getDiscount: 1,
-  limit: 6
+const XOffSpecial = function (type, name, buyQuantity, getQuantity, getDiscount, limit) {
+  return{
+    type: type,
+    name: name,
+    buyQuantity: buyQuantity,
+    getQuantity: getQuantity,
+    getDiscount: getDiscount,
+    limit: limit,
+  }
 }
+const sardinesSpecial = new XOffSpecial('xOff', 'sardines', 1, 1, 1)
+const cardSpecial = new XOffSpecial('xOff', 'cards', 2, 1, .5) 
+const lightbulbSpecial = new XOffSpecial('xOff', 'lightbulbs', 2, 1, 1, 6)
+const groundBeefSpecial = new XOffSpecial('equalOrLesser', 'ground beef', 2, 1, 0.5) 
 
 // ... of type 'nForX'
-const batteriesSpecial = { type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.0 }
-const orangeJuiceSpecial = { type: 'nForX', name: 'orange juice', buyQuantity: 4, salesPrice: 10, limit: 12 }
-const groundBeefSpecial = {
-  type: 'equalOrLesser',
-  name: 'ground beef',
-  buyQuantity: 2,
-  getQuantity: 1,
-  getDiscount: 0.5
+const NForXSpecial = function (type, name, buyQuantity, salesPrice, limit) {
+  return{
+    type: type,
+    name: name,
+    buyQuantity: buyQuantity,
+    salesPrice: salesPrice,
+    limit: limit,
+  }
 }
+const batteriesSpecial = new NForXSpecial('nForX', 'batteries', 3, 5.)
+const orangeJuiceSpecial = new NForXSpecial('nForX', 'orange juice', 4, 10, 12)
+
 
 /** * End of Set Up  ***/
 
@@ -273,7 +288,6 @@ describe('Use Case #7: Support removing a scanned item', () => {
     expect(checkoutOrderApp.removeScannedItemsFromGlobalBasketObjectAndReturnGlobalTotalPrice(scansForRemoval)).toEqual(
       totalWithoutSpecial
     )
-    console.log('is part1IsOkay?', part1IsOkay)
   })
 
   test('b: keep the correct total after invalidating an X-Off special', () => {
@@ -301,7 +315,6 @@ describe('Use Case #7: Support removing a scanned item', () => {
     expect(checkoutOrderApp.removeScannedItemsFromGlobalBasketObjectAndReturnGlobalTotalPrice(scansForRemoval)).toEqual(
       totalWithoutSpecial
     )
-    console.log('is part1IsOkay?', part1IsOkay)
   })
 })
 
@@ -348,7 +361,7 @@ describe('Use Case #8: Support "Buy N, get M of equal or lesser value for %X off
     for (let i = 0; i < 5; i++) scans.push('cards')
     for (let i = 0; i < 12; i++) scans.push('lightbulbs')
     for (let i = 0; i < 5; i++) scans.push('batteries')
-  
+
     const totalPrice = 88.12
 
     expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(totalPrice)
