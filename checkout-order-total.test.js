@@ -6,58 +6,30 @@ let CheckoutOrderApp = require('./checkout-order-total').CheckoutOrderApp
 
 let checkoutOrderApp = new CheckoutOrderApp()
 
-// Items
-const Item = function (name, price, byWeight) {
-  return {
-    name: name,
-    price: price,
-    byWeight: byWeight
-  }
-}
+// per-unit items
+const soup = { name: 'soup', price: 1.89 }
+const sardines = { name: 'sardines', price: 0.89 }
+const cards = { name: 'cards', price: 4.0 }
+const batteries = { name: 'batteries', price: 10.0 }
+const lightbulbs = { name: 'lightbulbs', price: 2.0 }
+const orangeJuice = { name: 'orange juice', price: 5.0 }
 
-const soup = new Item('soup', 1.89)
-const sardines = new Item('sardines', 0.89)
-const cards = new Item('cards', 4.0)
-const batteries = new Item('batteries', 10)
-const lightbulbs = new Item('lightbulbs', 2)
-const orangeJuice = new Item('orange juice', 5)
-const groundBeef = new Item('ground beef', 2.5, true)
-const bananas = new Item('bananas', 0.25, true)
+// by-weight items
+const groundBeef = { name: 'ground beef', price: 2.5, byWeight: true }
+const bananas = { name: 'bananas', price: 0.25, byWeight: true }
 
 // mark-downs
 const soupMarkDown = { name: 'soup', amount: 1.5 }
 const bananasMarkDown = { name: 'bananas', amount: 0.1 }
 
-// 'xOff' Specials
-const XOffSpecial = function (type, name, buyQuantity, getQuantity, getDiscount, limit) {
-  return {
-    type: type,
-    name: name,
-    buyQuantity: buyQuantity,
-    getQuantity: getQuantity,
-    getDiscount: getDiscount,
-    limit: limit
-  }
-}
-const sardinesSpecial = new XOffSpecial('xOff', 'sardines', 1, 1, 1)
-const cardSpecial = new XOffSpecial('xOff', 'cards', 2, 1, 0.5)
-const lightbulbSpecial = new XOffSpecial('xOff', 'lightbulbs', 2, 1, 1, 6)
-const groundBeefSpecial = new XOffSpecial('equalOrLesser', 'ground beef', 2, 1, 0.5)
+// specials
 
-// 'nForX' Specials
-const NForXSpecial = function (type, name, buyQuantity, salesPrice, limit) {
-  return {
-    type: type,
-    name: name,
-    buyQuantity: buyQuantity,
-    salesPrice: salesPrice,
-    limit: limit
-  }
-}
-const batteriesSpecial = new NForXSpecial('nForX', 'batteries', 3, 5)
-const orangeJuiceSpecial = new NForXSpecial('nForX', 'orange juice', 4, 10, 12)
+// ..of type 'xOff'
+const sardinesSpecial = { type: 'xOff', name: 'sardines', buyQuantity: 1, getQuantity: 1, getDiscount: 1 }
+const cardSpecial = { type: 'xOff', name: 'cards', buyQuantity: 2, getQuantity: 1, getDiscount: 0.5 }
 
-/** * End of Set Up  ***/
+// ... of type 'nForX'
+const batteriesSpecial = { type: 'nForX', name: 'batteries', buyQuantity: 3, salesPrice: 5.0 }
 
 /**********/
 /* Tests */
@@ -68,21 +40,21 @@ describe('Use Case #1: accepts a scanned item', () => {
   test('a: configure the price of a per-unit item', () => {
     const itemList = `Items:\nsoup @ $1.89`
 
-    expect(checkoutOrderApp.addItemsToGlobalItemListObjectAndReturnGlobalItemListObject(soup)).toMatch(itemList)
+    expect(checkoutOrderApp.configurePricesAndReturnAnItemsList(soup)).toMatch(itemList)
   })
 
   test('b: configure the price of several per-unit items', () => {
     const items = [soup, sardines]
     const itemList = `Items:\nsoup @ $1.89\nsardines @ $0.89`
 
-    expect(checkoutOrderApp.addItemsToGlobalItemListObjectAndReturnGlobalItemListObject(items)).toMatch(itemList)
+    expect(checkoutOrderApp.configurePricesAndReturnAnItemsList(items)).toMatch(itemList)
   })
 
   test('c: total reflects an increase by the per-unit price after a scan', () => {
     const scan = 'soup'
     const total = 1.89
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scan)).toEqual(total)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scan)).toEqual(total)
   })
 
   test('d: total reflects an increase by the per-unit price after several scans', () => {
@@ -90,7 +62,7 @@ describe('Use Case #1: accepts a scanned item', () => {
     const scans = ['soup', 'soup']
     const total = 1.89 * 2
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(total)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(total)
   })
 })
 
@@ -101,7 +73,7 @@ describe('Use Case #2: accepts a scanned item and weight', () => {
     const items = [soup, sardines, bananas]
     const itemList = `Items:\nsoup @ $1.89\nsardines @ $0.89\nbananas @ $0.25`
 
-    expect(checkoutOrderApp.addItemsToGlobalItemListObjectAndReturnGlobalItemListObject(items)).toMatch(itemList)
+    expect(checkoutOrderApp.configurePricesAndReturnAnItemsList(items)).toMatch(itemList)
   })
 
   test("b: total reflects an increase by an item's given weight", () => {
@@ -109,7 +81,7 @@ describe('Use Case #2: accepts a scanned item and weight', () => {
     const scans = ['soup', 'soup', ['bananas', 1.3], ['bananas', 5], 'sardines', 'sardines']
     const total = soup.price * 2 + bananas.price * 1.3 + bananas.price * 5 + sardines.price * 2
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(total)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(total)
   })
 })
 
@@ -120,9 +92,7 @@ describe('Use Case #3: support a mark-down', () => {
     const markDowns = [soupMarkDown, bananasMarkDown]
     const markDownsObj = { soup: 1.5, bananas: 0.1 }
 
-    expect(checkoutOrderApp.addMarkDownsToGlobalMarkDownObjectReturnGlobalMarkDownObject(markDowns)).toEqual(
-      expect.objectContaining(markDownsObj)
-    )
+    expect(checkoutOrderApp.addMarkDowns(markDowns)).toEqual(expect.objectContaining(markDownsObj))
   })
 
   test('b: a single, by-weight item reflects the by-weight cost less the markdown when scanned', () => {
@@ -130,7 +100,7 @@ describe('Use Case #3: support a mark-down', () => {
     const scans = [['bananas', 5]]
     const totalPrice = (bananas.price - bananasMarkDown.amount) * 5
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(totalPrice)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
   })
 
   test('c: by-weight items reflect the by-weight cost less the markdown when scanned', () => {
@@ -139,7 +109,7 @@ describe('Use Case #3: support a mark-down', () => {
     const total =
       (bananas.price - bananasMarkDown.amount) * 1.3 + (bananas.price - bananasMarkDown.amount) * 5 + sardines.price * 2
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(total)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(total)
   })
 
   test('d: a single, per-unit item reflects the per-unit cost less the markdown when scanned', () => {
@@ -147,7 +117,7 @@ describe('Use Case #3: support a mark-down', () => {
     const scans = ['soup']
     const totalPrice = (soup.price - soupMarkDown.amount) * 1
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(totalPrice)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
   })
 
   test('e: per-unit items reflect the per-unit cost less the markdown when scanned', () => {
@@ -159,7 +129,7 @@ describe('Use Case #3: support a mark-down', () => {
       (bananas.price - bananasMarkDown.amount) * 5 +
       sardines.price * 2
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(total)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(total)
   })
 })
 
@@ -169,9 +139,7 @@ describe('Use Case #4: support a special in the form of "Buy N items get M at %X
     const specials = [sardinesSpecial, cardSpecial]
     const specialsObj = { sardines: ['xOff', 1, 1, 1], cards: ['xOff', 2, 1, 0.5] }
 
-    expect(checkoutOrderApp.addSpecialsToGlobalSpecialsObjectAndReturnGlobalSpecialsObject(specials)).toEqual(
-      expect.objectContaining(specialsObj)
-    )
+    expect(checkoutOrderApp.addSpecials(specials)).toEqual(expect.objectContaining(specialsObj))
   })
 
   test('b: buy 1, get 1 free', () => {
@@ -179,18 +147,18 @@ describe('Use Case #4: support a special in the form of "Buy N items get M at %X
     const scans = ['sardines', 'sardines', 'sardines', 'sardines', 'sardines']
     const totalPrice = sardines.price * (5 - 2)
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(totalPrice)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
   })
 
   test('c: buy 2, get 1 half off', () => {
     checkoutOrderApp.basket = {} // empty the basket
     const items = [soup, sardines, bananas, cards, batteries]
-    checkoutOrderApp.addItemsToGlobalItemListObjectAndReturnGlobalItemListObject(items) // stock the items
+    checkoutOrderApp.configurePricesAndReturnAnItemsList(items) // stock the items
 
     const scans = ['sardines', 'sardines', 'sardines', 'sardines', 'sardines', 'cards', 'cards', 'cards']
     const totalPrice = sardines.price * (5 - 2) + cards.price * 2.5
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(totalPrice)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
   })
 })
 
@@ -200,9 +168,7 @@ describe('Use Case #5: Support a special in the form of "N for $X."', () => {
     const specials = [batteriesSpecial]
     const specialsObj = { sardines: ['xOff', 1, 1, 1], cards: ['xOff', 2, 1, 0.5], batteries: ['nForX', 3, 5.0] }
 
-    expect(checkoutOrderApp.addSpecialsToGlobalSpecialsObjectAndReturnGlobalSpecialsObject(specials)).toEqual(
-      expect.objectContaining(specialsObj)
-    )
+    expect(checkoutOrderApp.addSpecials(specials)).toEqual(expect.objectContaining(specialsObj))
   })
 
   test('b: buy 3 for $5.00', () => {
@@ -210,12 +176,23 @@ describe('Use Case #5: Support a special in the form of "N for $X."', () => {
     const scans = ['batteries', 'batteries', 'batteries', 'batteries', 'batteries']
     const totalPrice = 5.0 + batteries.price * 2
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(totalPrice)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
   })
 })
 
 // Use Case #6
 describe('Use Case #6: Support a limit on specials', () => {
+  const lightbulbSpecial = {
+    type: 'xOff',
+    name: 'lightbulbs',
+    buyQuantity: 2,
+    getQuantity: 1,
+    getDiscount: 1,
+    limit: 6
+  }
+
+  const orangeJuiceSpecial = { type: 'nForX', name: 'orange juice', buyQuantity: 4, salesPrice: 10, limit: 12 }
+
   test('a: add limits to specials', () => {
     const specials = [lightbulbSpecial, orangeJuiceSpecial]
     const specialsObj = {
@@ -226,33 +203,31 @@ describe('Use Case #6: Support a limit on specials', () => {
       'orange juice': ['nForX', 4, 10, 12]
     }
 
-    expect(checkoutOrderApp.addSpecialsToGlobalSpecialsObjectAndReturnGlobalSpecialsObject(specials)).toEqual(
-      expect.objectContaining(specialsObj)
-    )
+    expect(checkoutOrderApp.addSpecials(specials)).toEqual(expect.objectContaining(specialsObj))
   })
 
   test('b: buy 2, get 1 free, limit 6', () => {
     checkoutOrderApp.basket = {} // empty the basket
     const items = [soup, sardines, bananas, cards, batteries, lightbulbs, orangeJuice]
-    checkoutOrderApp.addItemsToGlobalItemListObjectAndReturnGlobalItemListObject(items) // stock the item
+    checkoutOrderApp.configurePricesAndReturnAnItemsList(items) // stock the item
 
     const scans = []
     for (let i = 0; i < 20; i++) scans.push('lightbulbs')
     const totalPrice = lightbulbs.price * (12 + 2)
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(totalPrice)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
   })
 
   test('c: buy 4 for 10, limit 12', () => {
     checkoutOrderApp.basket = {} // empty the basket
     const items = [soup, sardines, bananas, cards, batteries, lightbulbs, orangeJuice]
-    checkoutOrderApp.addItemsToGlobalItemListObjectAndReturnGlobalItemListObject(items) // stock the item
+    checkoutOrderApp.configurePricesAndReturnAnItemsList(items) // stock the item
 
     const scans = []
     for (let i = 0; i < 20; i++) scans.push('orange juice')
     const totalPrice = 30 + orangeJuice.price * 8
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(totalPrice)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
   })
 })
 
@@ -266,7 +241,7 @@ describe('Use Case #7: Support removing a scanned item', () => {
     let scans = []
     for (let i = 0; i < 20; i++) scans.push('orange juice')
     let expectedTotalWithSpecial = 30 + orangeJuice.price * 8
-    let actualTotalWithSpecial = checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)
+    let actualTotalWithSpecial = checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)
     let part1IsOkay = expectedTotalWithSpecial === actualTotalWithSpecial
 
     // delete enough items to invalidate a special
@@ -280,9 +255,7 @@ describe('Use Case #7: Support removing a scanned item', () => {
     // determine if there's a problem with the set up
     totalWithoutSpecial = part1IsOkay ? totalWithoutSpecial : "part 1 ain't okay"
 
-    expect(checkoutOrderApp.removeScannedItemsFromGlobalBasketObjectAndReturnGlobalTotalPrice(scansForRemoval)).toEqual(
-      totalWithoutSpecial
-    )
+    expect(checkoutOrderApp.removeScannedItemsAndReturnTotalPrice(scansForRemoval)).toEqual(totalWithoutSpecial)
   })
 
   test('b: keep the correct total after invalidating an X-Off special', () => {
@@ -293,7 +266,7 @@ describe('Use Case #7: Support removing a scanned item', () => {
     let scans = []
     for (let i = 0; i < 20; i++) scans.push('lightbulbs')
     let expectedTotalWithSpecial = lightbulbs.price * (12 + 2)
-    let actualTotalWithSpecial = checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)
+    let actualTotalWithSpecial = checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)
     let part1IsOkay = expectedTotalWithSpecial === actualTotalWithSpecial
 
     // delete enough items to invalidate a special
@@ -307,64 +280,41 @@ describe('Use Case #7: Support removing a scanned item', () => {
     // determine if there's a problem with the set up
     totalWithoutSpecial = part1IsOkay ? totalWithoutSpecial : "part 1 ain't okay"
 
-    expect(checkoutOrderApp.removeScannedItemsFromGlobalBasketObjectAndReturnGlobalTotalPrice(scansForRemoval)).toEqual(
-      totalWithoutSpecial
-    )
+    expect(checkoutOrderApp.removeScannedItemsAndReturnTotalPrice(scansForRemoval)).toEqual(totalWithoutSpecial)
   })
 })
+
 
 // Use Case #8
 describe('Use Case #8: Support "Buy N, get M of equal or lesser value for %X off" on weighted items', () => {
   test('a: add "equalOrLesser" special', () => {
-    const specialsObj = {
-      sardines: ['xOff', 1, 1, 1],
-      cards: ['xOff', 2, 1, 0.5],
-      batteries: ['nForX', 3, 5.0],
-      lightbulbs: ['xOff', 2, 1, 1, 6],
-      'orange juice': ['nForX', 4, 10, 12],
-      'ground beef': ['equalOrLesser', 2, 1, 0.5]
-    }
+   const groundBeefSpecial = {type: 'equalOrLesser', name: 'ground beef', buyQuantity: 2, getQuantity: 1, getDiscount: .5 }
 
-    expect(checkoutOrderApp.addSpecialsToGlobalSpecialsObjectAndReturnGlobalSpecialsObject(groundBeefSpecial)).toEqual(
-      expect.objectContaining(specialsObj)
-    )
+   const specialsObj = {
+    sardines: ['xOff', 1, 1, 1],
+    cards: ['xOff', 2, 1, 0.5],
+    batteries: ['nForX', 3, 5.0],
+    lightbulbs: ['xOff', 2, 1, 1, 6],
+    'orange juice': ['nForX', 4, 10, 12],
+    'ground beef': ['equalOrLesser', 2, 1, .5]
+  }
+
+  expect(checkoutOrderApp.addSpecials(groundBeefSpecial)).toEqual(expect.objectContaining(specialsObj))
   })
+
 
   test('b: buy 2 pounds of ground beef, get 1 pound half off', () => {
     checkoutOrderApp.basket = {} // empty the basket
     const items = [soup, sardines, bananas, cards, batteries, lightbulbs, orangeJuice, groundBeef]
-    checkoutOrderApp.addItemsToGlobalItemListObjectAndReturnGlobalItemListObject(items) // stock the item
+    checkoutOrderApp.configurePricesAndReturnAnItemsList(items) // stock the item
 
     const scans = [['ground beef', 4]]
     // special price = 2 @ reg price + 1 @ 1/2 price + 1 @ reg price
-    const totalPrice = 2 * groundBeef.price + (1 * groundBeef.price) / 2 + 1 * groundBeef.price
+    const totalPrice = 2 * groundBeef.price + 1 * groundBeef.price/2 + 1 * groundBeef.price
 
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(totalPrice)
-  })
-
-  test('c: combine multiple specials non specials', () => {
-    checkoutOrderApp.basket = {} // empty the basket
-    const items = [soup, sardines, bananas, cards, batteries, lightbulbs, orangeJuice, groundBeef]
-    checkoutOrderApp.addItemsToGlobalItemListObjectAndReturnGlobalItemListObject(items) // stock the item
-
-    let scans = []
-    scans.push(['ground beef', 4])
-    for (let i = 0; i < 5; i++) scans.push('sardines')
-    for (let i = 0; i < 5; i++) scans.push(['bananas', 1])
-    for (let i = 0; i < 5; i++) scans.push('soup')
-    for (let i = 0; i < 5; i++) scans.push('orange juice')
-    for (let i = 0; i < 5; i++) scans.push('cards')
-    for (let i = 0; i < 12; i++) scans.push('lightbulbs')
-    for (let i = 0; i < 5; i++) scans.push('batteries')
-
-    const totalPrice = 88.12
-
-    expect(checkoutOrderApp.scanItemsAddToGlobalBasketAndReturnGlobalTotalPrice(scans)).toEqual(totalPrice)
+    expect(checkoutOrderApp.scanItemsAndReturnTotalPrice(scans)).toEqual(totalPrice)
   })
 })
+// Error checking -- what if an item is scanned but in the system
 
-/* Error checking
- -- what if an item is scanned but not in the system
- -- should we handle null values
- -- do we worry about numberical values
-*/
+// clean up: arrange things in alphabetical order
